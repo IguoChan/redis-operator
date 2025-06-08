@@ -17,6 +17,8 @@ limitations under the License.
 package v1
 
 import (
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -25,17 +27,49 @@ import (
 
 // RedisSpec defines the desired state of Redis
 type RedisSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// Image: Redis Image
+	// +kubebuilder:default="redis:7.0"
+	Image string `json:"image,omitempty"`
 
-	// Foo is an example field of Redis. Edit redis_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// NodePort Service
+	// +kubebuilder:validation:Minimum=30000
+	// +kubebuilder:validation:Maximum=32767
+	// +kubebuilder:default=31000
+	NodePort int32 `json:"nodePort,omitempty"`
+
+	// 存储配置
+	Storage StorageSpec `json:"storage,omitempty"`
+}
+
+// StorageSpec 定义 Redis 存储配置
+type StorageSpec struct {
+	// 存储大小
+	// +kubebuilder:default="1Gi"
+	Size resource.Quantity `json:"size,omitempty"`
+
+	// 主机目录路径
+	// +kubebuilder:default="/data"
+	HostPath string `json:"hostPath,omitempty"`
 }
 
 // RedisStatus defines the observed state of Redis
 type RedisStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// 部署状态
+	Phase string `json:"phase,omitempty"`
+
+	// Redis 服务端点
+	Endpoint string `json:"endpoint,omitempty"`
+
+	// 状态条件
+	Conditions []RedisCondition `json:"conditions,omitempty"`
+}
+
+// RedisCondition 表示 Redis 实例的当前状态
+type RedisCondition struct {
+	Type    string                 `json:"type"`
+	Status  corev1.ConditionStatus `json:"status"`
+	Reason  string                 `json:"reason,omitempty"`
+	Message string                 `json:"message,omitempty"`
 }
 
 //+kubebuilder:object:root=true
