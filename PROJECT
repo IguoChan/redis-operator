@@ -7,4 +7,14 @@ layout:
 - go.kubebuilder.io/v4
 projectName: redis-operator
 repo: github.com/IguoChan/redis-operator
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: iguochan.io
+  group: cache
+  kind: Redis
+  path: github.com/IguoChan/redis-operator/api/v1
+  version: v1
 version: "3"
