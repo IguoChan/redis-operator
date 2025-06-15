@@ -17,9 +17,16 @@ limitations under the License.
 package v1
 
 import (
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+type RedisPhase string
+
+const (
+	RedisPhasePending = "Pending"
+	RedisPhaseError   = "Error"
+	RedisPhaseReady   = "Ready"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -55,25 +62,18 @@ type StorageSpec struct {
 // RedisStatus defines the observed state of Redis
 type RedisStatus struct {
 	// 部署状态
-	Phase string `json:"phase,omitempty"`
+	Phase RedisPhase `json:"phase,omitempty"`
 
 	// Redis 服务端点
 	Endpoint string `json:"endpoint,omitempty"`
-
-	// 状态条件
-	Conditions []RedisCondition `json:"conditions,omitempty"`
-}
-
-// RedisCondition 表示 Redis 实例的当前状态
-type RedisCondition struct {
-	Type    string                 `json:"type"`
-	Status  corev1.ConditionStatus `json:"status"`
-	Reason  string                 `json:"reason,omitempty"`
-	Message string                 `json:"message,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+//+kubebuilder:printcolumn:JSONPath=".status.phase",name=phase,type=string,description="当前阶段"
+//+kubebuilder:printcolumn:name="Endpoint",type="string",JSONPath=".status.endpoint",description="访问端点"
+//+kubebuilder:printcolumn:name="Image",type="string",JSONPath=".spec.image",description="使用的镜像"
+//+kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp",description="创建时间"
 
 // Redis is the Schema for the redis API
 type Redis struct {

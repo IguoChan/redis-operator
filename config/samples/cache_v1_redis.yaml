@@ -9,4 +9,8 @@ metadata:
     app.kubernetes.io/created-by: redis-operator
   name: redis-sample
 spec:
-  # TODO(user): Add fields here
+  image: redis:7.0
+  nodePort: 31000
+  storage:
+    size: 1Gi
+    hostPath: /data

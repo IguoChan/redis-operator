@@ -15,7 +15,24 @@ spec:
     singular: redis
   scope: Namespaced
   versions:
-  - name: v1
+  - additionalPrinterColumns:
+    - description: 当前阶段
+      jsonPath: .status.phase
+      name: phase
+      type: string
+    - description: 访问端点
+      jsonPath: .status.endpoint
+      name: Endpoint
+      type: string
+    - description: 使用的镜像
+      jsonPath: .spec.image
+      name: Image
+      type: string
+    - description: 创建时间
+      jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1
     schema:
       openAPIV3Schema:
         description: Redis is the Schema for the redis API
@@ -66,24 +83,6 @@ spec:
           status:
             description: RedisStatus defines the observed state of Redis
             properties:
-              conditions:
-                description: 状态条件
-                items:
-                  description: RedisCondition 表示 Redis 实例的当前状态
-                  properties:
-                    message:
-                      type: string
-                    reason:
-                      type: string
-                    status:
-                      type: string
-                    type:
-                      type: string
-                  required:
-                  - status
-                  - type
-                  type: object
-                type: array
               endpoint:
                 description: Redis 服务端点
                 type: string
