@@ -101,6 +101,18 @@ func main() {
 		setupLog.Error(err, "unable to create webhook", "webhook", "Redis")
 		os.Exit(1)
 	}
+	if err = (&controller.RedisSentinelReconciler{
+		Client:   mgr.GetClient(),
+		Scheme:   mgr.GetScheme(),
+		Recorder: mgr.GetEventRecorderFor("RedisSentinel"),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "RedisSentinel")
+		os.Exit(1)
+	}
+	if err = (&cachev1.RedisSentinel{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "RedisSentinel")
+		os.Exit(1)
+	}
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

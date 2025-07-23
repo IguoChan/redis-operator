@@ -1,0 +1,21 @@
+apiVersion: cache.iguochan.io/v1
+kind: RedisSentinel
+metadata:
+  labels:
+    app.kubernetes.io/name: redissentinel
+    app.kubernetes.io/instance: redissentinel-sample
+    app.kubernetes.io/part-of: redis-operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: redis-operator
+  name: redissentinel-sample
+spec:
+  image: redis:7.0
+  sentinelImage: redis:7.0
+  redisReplicas: 3
+  sentinelReplicas: 3
+  masterNodePort: 30999
+  nodePort: 31000
+  sentinelNodePort: 31001
+  storage:
+    size: 1Gi
+    hostPath: /data

@@ -43,6 +43,10 @@ type RedisReconciler struct {
 }
 
 const (
+	RedisPort = 6379
+)
+
+const (
 	RecordReasonFailed  = "Failed"
 	RecordReasonWaiting = "Waiting"
 )
@@ -56,6 +60,7 @@ const (
 //+kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=core,resources=persistentvolumeclaims,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=core,resources=persistentvolumes,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups="",resources=events,verbs=create;patch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -133,7 +138,7 @@ func (r *RedisReconciler) reconcileStatefulSet(ctx context.Context, redis *cache
 							Ports: []corev1.ContainerPort{
 								{
 									Name:          "redis",
-									ContainerPort: 6379,
+									ContainerPort: RedisPort,
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -208,8 +213,8 @@ func (r *RedisReconciler) reconcileService(ctx context.Context, redis *cachev1.R
 			Ports: []corev1.ServicePort{
 				{
 					Name:       "redis",
-					Port:       6379,
-					TargetPort: intstr.FromInt(6379),
+					Port:       RedisPort,
+					TargetPort: intstr.FromInt(RedisPort),
 					NodePort:   redis.Spec.NodePort,
 				},
 			},

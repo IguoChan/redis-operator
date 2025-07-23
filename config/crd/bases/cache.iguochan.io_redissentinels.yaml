@@ -1,0 +1,140 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.11.3
+  creationTimestamp: null
+  name: redissentinels.cache.iguochan.io
+spec:
+  group: cache.iguochan.io
+  names:
+    kind: RedisSentinel
+    listKind: RedisSentinelList
+    plural: redissentinels
+    shortNames:
+    - rss
+    singular: redissentinel
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - description: Current phase
+      jsonPath: .status.phase
+      name: phase
+      type: string
+    - description: Redis endpoint
+      jsonPath: .status.endpoint
+      name: RedisEndpoint
+      type: string
+    - description: Sentinel endpoint
+      jsonPath: .status.sentinelEndpoint
+      name: SentinelEndpoint
+      type: string
+    - description: Redis image
+      jsonPath: .spec.image
+      name: Image
+      type: string
+    - description: Creation time
+      jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1
+    schema:
+      openAPIV3Schema:
+        description: RedisSentinel is the Schema for the redissentinels API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: RedisSentinelSpec defines the desired state of RedisSentinel
+            properties:
+              image:
+                default: redis:7.0
+                description: 'Image: Redis Image'
+                type: string
+              masterNodePort:
+                default: 30999
+                description: 'NodePort: Redis NodePort for external access'
+                format: int32
+                maximum: 32767
+                minimum: 30000
+                type: integer
+              nodePort:
+                default: 31000
+                description: 'NodePort: Redis NodePort for external access'
+                format: int32
+                maximum: 32767
+                minimum: 30000
+                type: integer
+              redisReplicas:
+                default: 3
+                description: 'RedisReplicas: Number of Redis instances'
+                format: int32
+                type: integer
+              sentinelImage:
+                default: redis:7.0
+                description: 'SentinelImage: Sentinel Image'
+                type: string
+              sentinelNodePort:
+                default: 31001
+                description: 'SentinelNodePort: Sentinel NodePort for external access'
+                format: int32
+                maximum: 32767
+                minimum: 30000
+                type: integer
+              sentinelReplicas:
+                default: 3
+                description: 'SentinelReplicas: Number of Sentinel instances'
+                format: int32
+                type: integer
+              storage:
+                description: Storage configuration
+                properties:
+                  hostPath:
+                    default: /data
+                    description: Host path directory
+                    type: string
+                  size:
+                    anyOf:
+                    - type: integer
+                    - type: string
+                    default: 1Gi
+                    description: Storage size
+                    pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                    x-kubernetes-int-or-string: true
+                type: object
+            type: object
+          status:
+            description: RedisSentinelStatus defines the observed state of RedisSentinel
+            properties:
+              endpoint:
+                description: Redis endpoint
+                type: string
+              lastRoleUpdateTime:
+                format: date-time
+                type: string
+              master:
+                description: Master node name
+                type: string
+              phase:
+                description: Deployment phase
+                type: string
+              sentinelEndpoint:
+                description: Sentinel endpoint
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

@@ -1,0 +1,31 @@
+# permissions for end users to edit redissentinels.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: redissentinel-editor-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: redis-operator
+    app.kubernetes.io/part-of: redis-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: redissentinel-editor-role
+rules:
+- apiGroups:
+  - cache.iguochan.io
+  resources:
+  - redissentinels
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - cache.iguochan.io
+  resources:
+  - redissentinels/status
+  verbs:
+  - get
