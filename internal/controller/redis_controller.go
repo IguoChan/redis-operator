@@ -19,6 +19,7 @@ package controller
 import (
 	"context"
 	"fmt"
+	"reflect"
 
 	cachev1 "github.com/IguoChan/redis-operator/api/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -91,6 +92,12 @@ func (r *RedisReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	if err := r.reconcileService(ctx, redis); err != nil {
 		logger.Error(err, "reconcileService failed")
 		r.Recorder.Eventf(redis, corev1.EventTypeWarning, RecordReasonFailed, "reconcileService failed: %s", err.Error())
+		return ctrl.Result{}, r.updateStatus(ctx, redis)
+	}
+
+	if err := r.reconcileExporterService(ctx, redis); err != nil {
+		logger.Error(err, "reconcileExporterService failed")
+		r.Recorder.Eventf(redis, corev1.EventTypeWarning, RecordReasonFailed, "reconcileExporterService failed: %s", err.Error())
 		return ctrl.Result{}, r.updateStatus(ctx, redis)
 	}
 
@@ -172,6 +179,26 @@ func (r *RedisReconciler) reconcileStatefulSet(ctx context.Context, redis *cache
 		},
 	}
 
+	if redis.Spec.Exporter.Enable {
+		// 添加 Redis Exporter 容器
+		desired.Spec.Template.Spec.Containers = append(desired.Spec.Template.Spec.Containers, corev1.Container{
+			Name:            "redis-exporter",
+			Image:           redis.Spec.Exporter.Image,
+			ImagePullPolicy: corev1.PullIfNotPresent,
+			Ports: []corev1.ContainerPort{
+				{
+					Name:          "metrics",
+					ContainerPort: redis.Spec.Exporter.Port,
+				},
+			},
+			Args: []string{
+				fmt.Sprintf("--redis.addr=localhost:%d", RedisPort),
+				fmt.Sprintf("--web.listen-address=:%d", redis.Spec.Exporter.Port),
+			},
+			Resources: redis.Spec.Exporter.Resources,
+		})
+	}
+
 	// 设置 OwnerReference
 	if err := ctrl.SetControllerReference(redis, desired, r.Scheme); err != nil {
 		return err
@@ -243,6 +270,64 @@ func (r *RedisReconciler) reconcileService(ctx context.Context, redis *cachev1.R
 	if existing.Spec.Ports[0].NodePort != desired.Spec.Ports[0].NodePort {
 		logger.Info("Updating Service port", "name", desired.Name)
 		existing.Spec.Ports = desired.Spec.Ports
+		return r.Update(ctx, existing)
+	}
+
+	return nil
+}
+
+func (r *RedisReconciler) reconcileExporterService(ctx context.Context, redis *cachev1.Redis) error {
+	if !redis.Spec.Exporter.Enable {
+		return nil
+	}
+
+	logger := log.FromContext(ctx)
+	desired := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%s-exporter", redis.Name),
+			Namespace: redis.Namespace,
+			Labels: map[string]string{
+				"app":  "redis",
+				"name": redis.Name,
+			},
+		},
+		Spec: corev1.ServiceSpec{
+			Selector: map[string]string{
+				"app":  "redis",
+				"name": redis.Name,
+			},
+			Ports: []corev1.ServicePort{
+				{
+					Name:       "metrics",
+					Port:       redis.Spec.Exporter.Port,
+					TargetPort: intstr.FromInt(int(redis.Spec.Exporter.Port)),
+				},
+			},
+		},
+	}
+
+	// 设置 OwnerReference
+	if err := ctrl.SetControllerReference(redis, desired, r.Scheme); err != nil {
+		return err
+	}
+
+	existing := &corev1.Service{}
+	err := r.Get(ctx, types.NamespacedName{
+		Name:      desired.Name,
+		Namespace: desired.Namespace,
+	}, existing)
+
+	if errors.IsNotFound(err) {
+		logger.Info("Creating Exporter Service", "name", desired.Name)
+		return r.Create(ctx, desired)
+	} else if err != nil {
+		return err
+	}
+
+	// 更新 Service（如果需要）
+	if !reflect.DeepEqual(existing.Spec.Ports, desired.Spec.Ports) {
+		existing.Spec.Ports = desired.Spec.Ports
+		logger.Info("Updating Exporter Service", "name", desired.Name)
 		return r.Update(ctx, existing)
 	}
 

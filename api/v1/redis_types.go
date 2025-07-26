@@ -17,6 +17,7 @@ limitations under the License.
 package v1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -46,6 +47,9 @@ type RedisSpec struct {
 
 	// 存储配置
 	Storage StorageSpec `json:"storage,omitempty"`
+
+	// Exporter
+	Exporter ExporterSpec `json:"exporter,omitempty"`
 }
 
 // StorageSpec 定义 Redis 存储配置
@@ -57,6 +61,23 @@ type StorageSpec struct {
 	// 主机目录路径
 	// +kubebuilder:default="/data"
 	HostPath string `json:"hostPath,omitempty"`
+}
+
+// ExporterSpec 定义 Redis Exporter 配置
+type ExporterSpec struct {
+	// 是否启用监控
+	Enable bool `json:"enable,omitempty"`
+
+	// 镜像
+	// +kubebuilder:default="oliver006/redis_exporter:v1.50.0"
+	Image string `json:"image,omitempty"`
+
+	// 端口
+	// +kubebuilder:default=9121
+	Port int32 `json:"port,omitempty"`
+
+	// 资源限制
+	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 }
 
 // RedisStatus defines the observed state of Redis

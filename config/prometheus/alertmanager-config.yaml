@@ -1,0 +1,17 @@
+# alertmanager-config.yaml
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+  name: redis-alertmanager-config
+  namespace: prometheus  # 需与Alertmanager同Namespace
+spec:
+  route:
+    receiver: 'redis-team'
+    matchers:  # 修正点：使用对象格式定义匹配器
+      - name: service  # 标签名
+        value: "redis"  # 标签值
+        regex: false    # 是否启用正则（默认false）
+  receivers:
+    - name: 'redis-team'
+      emailConfigs:
+        - to: 'redis-ops@example.com'

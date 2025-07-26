@@ -14,3 +14,14 @@ spec:
   storage:
     size: 1Gi
     hostPath: /data
+  exporter:
+    enable: true
+    image: "oliver006/redis_exporter:v1.50.0"
+    port: 9121
+    resources:
+      limits:
+        cpu: "100m"
+        memory: "128Mi"
+      requests:
+        cpu: "50m"
+        memory: "64Mi"

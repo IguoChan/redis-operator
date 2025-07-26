@@ -167,6 +167,19 @@ func (r *Redis) validateRedis(redis *Redis) error {
 		))
 	}
 
+	// 验证Redis Exporter
+	if redis.Spec.Exporter.Enable {
+		if redis.Spec.Exporter.Image == "" {
+			redis.Spec.Exporter.Image = "oliver006/redis_exporter:v1.50.0"
+			redislog.Info("Setting default exporter image", "image", redis.Spec.Exporter.Image)
+		}
+
+		if redis.Spec.Exporter.Port == 0 {
+			redis.Spec.Exporter.Port = 9121
+			redislog.Info("Setting default exporter port", "port", redis.Spec.Exporter.Port)
+		}
+	}
+
 	if len(allErrs) == 0 {
 		return nil
 	}
